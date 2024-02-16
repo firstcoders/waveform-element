@@ -5,14 +5,14 @@ This webcomponent follows the [open-wc](https://github.com/open-wc/open-wc) reco
 ## Installation
 
 ```bash
-npm i soundws-waveform
+npm i @soundws/waveform-element
 ```
 
 ## Usage
 
 ```html
 <script type="module">
-  import 'soundws-waveform/soundws-waveform.js';
+  import '@soundws/waveform-element/soundws-waveform.js';
 </script>
 
 <soundws-waveform></soundws-waveform>
@@ -45,7 +45,6 @@ To run the tests in interactive watch mode run:
 ```bash
 npm run test:watch
 ```
-
 
 ## Tooling configs
 
