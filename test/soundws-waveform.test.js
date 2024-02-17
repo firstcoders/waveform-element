@@ -79,7 +79,7 @@ describe('SoundwsWaveform', () => {
 
   // it('emits a load event when the peaks are loaded', async () => {});
 
-  // it('emits a waveform-draw event when the wave is drawn', async () => {});
+  // it('emits a waveform:draw event when the wave is drawn', async () => {});
 
   // it('exposes an .adjustedPeaks property which takes into account the .scaleY modifier', async () => {});
 

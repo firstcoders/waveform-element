@@ -228,7 +228,7 @@ export class SoundwsWaveform extends LitElement {
 
       // composed event, bubbles past shadow doms
       this.dispatchEvent(
-        new CustomEvent('waveform-draw', {
+        new CustomEvent('waveform:draw', {
           bubbles: true,
           composed: true,
         }),
