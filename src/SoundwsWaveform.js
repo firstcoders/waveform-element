@@ -54,6 +54,16 @@ export class SoundwsWaveform extends LitElement {
     this.barWidth = 2;
     this.pixelRatio = 2;
     this.padding = 0.1;
+
+    this.addEventListener('click', e => {
+      this.dispatchEvent(
+        new CustomEvent('seek', {
+          bubbles: true,
+          composed: true,
+          detail: Math.round((e.offsetX / e.target.clientWidth) * 100) / 100,
+        }),
+      );
+    });
   }
 
   destroy() {
