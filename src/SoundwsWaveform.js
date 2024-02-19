@@ -175,7 +175,7 @@ export class SoundwsWaveform extends LitElement {
    * Creates the waveform drawer
    * @private
    */
-  createDrawer() {
+  async createDrawer() {
     if (this.drawer) throw new Error('Unable to create multiple drawers');
 
     const container = this.shadowRoot.querySelector('.container');
@@ -196,6 +196,20 @@ export class SoundwsWaveform extends LitElement {
     });
 
     this.drawer.init();
+
+    // the drawer needs to stabilise rendering first. We deduce if it has by checking the width
+    await new Promise(done => {
+      let x = 0;
+      const i = setInterval(() => {
+        if (x > 10 || this.drawer.width > 0) {
+          clearInterval(i);
+          done();
+          x += 1;
+        }
+      }, 100);
+    });
+
+    this.drawer.progress(this.progress);
   }
 
   destroyDrawer() {
