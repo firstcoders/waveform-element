@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/soundws/waveform-element.git"
+    "url": "https://github.com/sound-ws/waveform-element.git"
   },
   "exports": {
     ".": "./index.js",
