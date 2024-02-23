@@ -12,6 +12,10 @@
     "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/soundws/waveform-element.git"
+  },
   "exports": {
     ".": "./index.js",
     "./soundws-waveform.js": "./soundws-waveform.js"
