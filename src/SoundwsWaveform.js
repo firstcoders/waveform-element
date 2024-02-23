@@ -57,7 +57,7 @@ export class SoundwsWaveform extends LitElement {
 
     this.addEventListener('click', e => {
       this.dispatchEvent(
-        new CustomEvent('seek', {
+        new CustomEvent('waveform:seek', {
           bubbles: true,
           composed: true,
           detail: Math.round((e.offsetX / e.target.clientWidth) * 100) / 100,
