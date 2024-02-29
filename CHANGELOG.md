@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.1.0-beta.4](https://github.com/sound-ws/waveform-element/compare/@soundws/waveform-element@0.1.0-beta.3...@soundws/waveform-element@0.1.0-beta.4) (2024-02-29)
+
+
+### Features
+
+* **waveform-element:** implemented combine peaks. Export Peaks object ([ad87f5e](https://github.com/sound-ws/waveform-element/commit/ad87f5ee866373ac1f7161c2de79fc5fde43f635))
+
+
+
+
+
 # [0.1.0-beta.3](https://github.com/sound-ws/waveform-element/compare/@soundws/waveform-element@0.1.0-beta.2...@soundws/waveform-element@0.1.0-beta.3) (2024-02-24)
 
 **Note:** Version bump only for package @soundws/waveform-element
