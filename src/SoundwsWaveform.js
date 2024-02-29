@@ -67,7 +67,7 @@ export class SoundwsWaveform extends LitElement {
   }
 
   destroy() {
-    this.destroyDrawer();
+    this.#destroyDrawer();
   }
 
   connectedCallback() {
@@ -91,7 +91,7 @@ export class SoundwsWaveform extends LitElement {
   updated(changedProperties) {
     changedProperties.forEach((oldValue, propName) => {
       if (propName === 'src') {
-        if (this.src && this.src !== oldValue) this.loadPeaks();
+        if (this.src && this.src !== oldValue) this.#loadPeaks();
       }
       if (propName === 'progress') {
         if (this.drawer) this.drawer.progress(this.progress);
@@ -109,7 +109,7 @@ export class SoundwsWaveform extends LitElement {
         ].indexOf(propName) !== -1
       ) {
         // updating any of these properties requires a new drawer
-        this.destroyDrawer();
+        this.#destroyDrawer();
         this.drawPeaks();
       }
       if (propName === 'duration') {
@@ -133,7 +133,7 @@ export class SoundwsWaveform extends LitElement {
    * @private
    * @returns {Promise}
    */
-  async loadPeaks() {
+  async #loadPeaks() {
     try {
       // cancel any previous requests
       if (this.loadHandle) this.loadHandle.cancel();
@@ -212,7 +212,10 @@ export class SoundwsWaveform extends LitElement {
     this.drawer.progress(this.progress);
   }
 
-  destroyDrawer() {
+  /**
+   * @private
+   */
+  #destroyDrawer() {
     this.drawer?.destroy();
     this.drawer = null;
   }
