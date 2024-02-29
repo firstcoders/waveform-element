@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.1-beta.0](https://github.com/sound-ws/waveform-element/compare/@soundws/waveform-element@0.1.0...@soundws/waveform-element@0.1.1-beta.0) (2024-02-29)
+
+
+### Bug Fixes
+
+* **waveform-element:** fix for no bar-gap ([650751f](https://github.com/sound-ws/waveform-element/commit/650751f27e5d637800f94a28fc5f13b9ae11a252))
+
+
+
+
+
 # [0.1.0](https://github.com/sound-ws/waveform-element/compare/@soundws/waveform-element@0.1.0-beta.4...@soundws/waveform-element@0.1.0) (2024-02-29)
 
 **Note:** Version bump only for package @soundws/waveform-element
