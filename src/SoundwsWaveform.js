@@ -184,7 +184,7 @@ export class SoundwsWaveform extends LitElement {
       container,
       params: {
         barGap: this.barGap || 2,
-        barWidth: this.barWidth || 2,
+        barWidth: this.barWidth > 0 ? this.barWidth : undefined,
         height: container.clientHeight,
         progressColor: this.progressColor,
         normalize: false,
