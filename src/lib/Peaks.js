@@ -1,7 +1,14 @@
 /* eslint-disable camelcase */
 export default class Peaks {
-  constructor({ data, sample_rate, samples_per_pixel, length, duration }) {
-    this.data = data;
+  constructor({
+    data,
+    sample_rate,
+    samples_per_pixel,
+    length,
+    duration,
+    threshold = 0.1,
+  }) {
+    this.data = data.map(x => (x < threshold ? 0 : x));
 
     // if we get a structure consistent withBBC audiowaveform, deduce duration
     // otherwise use duration if provided
@@ -9,8 +16,6 @@ export default class Peaks {
       this.duration = (samples_per_pixel * length) / sample_rate;
     } else if (duration) {
       this.duration = duration;
-    } else {
-      throw new Error('Cannot deduce duration');
     }
   }
 
