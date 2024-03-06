@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.2-beta.0](https://github.com/sound-ws/waveform-element/compare/@soundws/waveform-element@0.1.1...@soundws/waveform-element@0.1.2-beta.0) (2024-03-06)
+
+
+### Bug Fixes
+
+* **waveform-element:** do not throw when duration can not be decided ([2350701](https://github.com/sound-ws/waveform-element/commit/235070187efd22a08fbc187dc7619c1a0e8b38c8))
+
+
+
+
+
 ## [0.1.1](https://github.com/sound-ws/waveform-element/compare/@soundws/waveform-element@0.1.1-beta.0...@soundws/waveform-element@0.1.1) (2024-03-01)
 
 **Note:** Version bump only for package @soundws/waveform-element
