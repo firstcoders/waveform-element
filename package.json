@@ -4,7 +4,7 @@
   "email": "support@firstcoders.co.uk",
   "description": "Webcomponent soundws-waveform following open-wc recommendations",
   "license": "MIT",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "type": "module",
   "main": "index.js",
   "module": "index.js",
@@ -31,7 +31,7 @@
     "prepublishOnly": "npm run analyze"
   },
   "dependencies": {
-    "lit": "^3.2.1"
+    "lit": "^3.3.1"
   },
   "devDependencies": {
     "@babel/core": "^7.26.8",
