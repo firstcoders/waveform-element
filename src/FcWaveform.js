@@ -1,7 +1,9 @@
 import { html, LitElement, css } from 'lit';
 import createDrawer from './lib/createDrawer.js';
-import onResize from './lib/on-resize.js';
+import ResizeCoordinator from './lib/ResizeCoordinator.js';
+import StyleUpdateBatcher from './lib/StyleUpdateBatcher.js';
 import Peaks from './lib/Peaks.js';
+import debounce from './lib/debounce.js';
 
 /**
  * A simple waveform element that can render a waveform based on a data structure
@@ -16,6 +18,14 @@ import Peaks from './lib/Peaks.js';
  * @prop {number} progress - The progress value between 0 and 1
  */
 export class FcWaveform extends LitElement {
+  #isUpdatingWidth = false;
+
+  #isDrawing = false;
+
+  #debouncedDrawPeaks;
+
+  #adjustedPeaks = null;
+
   static get styles() {
     return css`
       :host {
@@ -60,6 +70,9 @@ export class FcWaveform extends LitElement {
     this.padding = 0.1;
     this.progress = 0;
 
+    // Debounce drawPeaks to prevent excessive redraws during rapid changes
+    this.#debouncedDrawPeaks = debounce(() => this.#performDraw(), 16); // ~60fps
+
     this.addEventListener('click', e => {
       this.dispatchEvent(
         new CustomEvent('waveform:seek', {
@@ -79,10 +92,11 @@ export class FcWaveform extends LitElement {
     super.connectedCallback();
 
     setTimeout(() => {
-      this.onResizeCallback = onResize(
+      this.onResizeCallback = ResizeCoordinator.observe(
         this.shadowRoot.firstElementChild,
         () => {
-          this.drawPeaks();
+          // Use debounced version to prevent excessive redraws during resize
+          this.#debouncedDrawPeaks();
         },
       );
     }, 0);
@@ -98,7 +112,17 @@ export class FcWaveform extends LitElement {
       if (propName === 'src') {
         if (this.src && this.src !== oldValue) this.#loadPeaks();
       }
-      if (propName === 'scaleY' || propName === 'peaks') {
+      if (
+        propName === 'scaleY' ||
+        propName === 'peaks' ||
+        propName === 'padding'
+      ) {
+        // Recalculate adjusted peaks when any dependency changes
+        this.#calculateAdjustedPeaks();
+
+        if (propName === 'peaks') {
+          this.#updateWidth();
+        }
         this.drawPeaks();
       }
       if (propName === 'progress') {
@@ -192,16 +216,9 @@ export class FcWaveform extends LitElement {
 
     this.drawer.init();
 
-    // the drawer needs to stabilise rendering first. We deduce if it has by checking the width
-    await new Promise(done => {
-      let x = 0;
-      const i = setInterval(() => {
-        if (x > 10 || this.drawer.width > 0) {
-          clearInterval(i);
-          done();
-          x += 1;
-        }
-      }, 100);
+    // Wait for next frame to ensure drawer is mounted in DOM
+    await new Promise(resolve => {
+      requestAnimationFrame(resolve);
     });
   }
 
@@ -211,6 +228,49 @@ export class FcWaveform extends LitElement {
   #destroyDrawer() {
     this.drawer?.destroy();
     this.drawer = null;
+  }
+
+  /**
+   * Calculates and caches the adjusted peaks based on scaleY and padding
+   * @private
+   */
+  #calculateAdjustedPeaks() {
+    if (!this.peaks) {
+      this.#adjustedPeaks = null;
+      return;
+    }
+
+    const { scaleY } = this;
+    this.#adjustedPeaks = this.peaks.data.map(
+      e => e * (scaleY !== undefined ? scaleY : 1) * (1 - this.padding),
+    );
+  }
+
+  /**
+   * Updates the width of the element based on peaks duration and pixels per second
+   * @private
+   */
+  #updateWidth() {
+    if (!this.peaks || this.clientWidth === 0) return;
+
+    // Prevent resize loops
+    if (this.#isUpdatingWidth) return;
+
+    const defaultPixelsPerSecond = this.clientWidth / this.peaks.duration;
+    const newWidth = `calc(var(--fc-waveform-pixels-per-second, ${defaultPixelsPerSecond}) * ${this.peaks.duration}px)`;
+
+    // Only update if width has actually changed
+    if (this.style.width !== newWidth) {
+      this.#isUpdatingWidth = true;
+
+      // Batch style update to prevent layout thrashing with multiple waveforms
+      StyleUpdateBatcher.queueUpdate(this, { width: newWidth });
+
+      // Reset flag after a short delay to allow resize to settle
+      setTimeout(() => {
+        this.#isUpdatingWidth = false;
+      }, 50);
+    }
   }
 
   /**
@@ -228,53 +288,79 @@ export class FcWaveform extends LitElement {
   }
 
   /**
-   * (re)-draw the waveform
+   * (re)-draw the waveform (schedules a debounced draw)
    */
   drawPeaks() {
     if (!this.peaks) return;
-
-    if (this.drawPeaksAnimFrame) cancelAnimationFrame(this.drawPeaksAnimFrame);
-
     if (this.clientWidth === 0) return;
 
-    // set the width of the element
-    const defaultPixelsPerSecond = this.clientWidth / this.peaks.duration;
-    this.style.width = `calc(var(--fc-waveform-pixels-per-second, ${defaultPixelsPerSecond}) * ${this.peaks.duration}px)`;
+    // Schedule a debounced draw
+    this.#debouncedDrawPeaks();
+  }
 
-    if (!this.drawer) this.createDrawer();
+  /**
+   * Performs the actual drawing operation
+   * @private
+   */
+  async #performDraw() {
+    if (!this.peaks || this.clientWidth === 0) return;
 
-    this.drawPeaksAnimFrame = requestAnimationFrame(() => {
-      const { scaleY } = this;
-      const peaks = this.peaks.data.map(
-        e => e * (scaleY !== undefined ? scaleY : 1) * (1 - this.padding),
-      );
+    // Prevent concurrent draws
+    if (this.#isDrawing) return;
 
-      this.drawer.drawPeaks(peaks);
+    this.#isDrawing = true;
 
-      // Update progress after drawing peaks
-      this.#updateProgress();
+    try {
+      // Ensure drawer is created and ready
+      if (!this.drawer) {
+        await this.createDrawer();
+      }
 
-      // non bubbling event
-      this.dispatchEvent(new Event('draw'));
+      // Skip if drawer still not ready
+      if (!this.drawer) {
+        this.#isDrawing = false;
+        return;
+      }
 
-      // composed event, bubbles past shadow doms
-      this.dispatchEvent(
-        new CustomEvent('waveform:draw', {
-          bubbles: true,
-          composed: true,
-          detail: this,
-        }),
-      );
-    });
+      // Use cached adjusted peaks
+      if (!this.#adjustedPeaks) {
+        this.#isDrawing = false;
+        return;
+      }
+
+      // Use requestAnimationFrame for optimal rendering
+      await new Promise(resolve => {
+        requestAnimationFrame(() => {
+          this.drawer.drawPeaks(this.#adjustedPeaks);
+
+          // Update progress after drawing peaks
+          this.#updateProgress();
+
+          // non bubbling event
+          this.dispatchEvent(new Event('draw'));
+
+          // composed event, bubbles past shadow doms
+          this.dispatchEvent(
+            new CustomEvent('waveform:draw', {
+              bubbles: true,
+              composed: true,
+              detail: this,
+            }),
+          );
+
+          resolve();
+        });
+      });
+    } finally {
+      this.#isDrawing = false;
+    }
   }
 
   get adjustedPeaks() {
-    const { scaleY, peaks } = this;
-
-    if (peaks) {
+    if (this.#adjustedPeaks && this.peaks) {
       return new Peaks({
-        ...peaks,
-        data: peaks.data.map(e => e * (scaleY !== undefined ? scaleY : 1)),
+        ...this.peaks,
+        data: this.#adjustedPeaks,
         normalize: false,
       });
     }
